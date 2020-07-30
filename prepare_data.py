@@ -108,7 +108,7 @@ def make_skills_zero_rows(user, unique_skills, sparsity):
 
 def main():
     DATA_DIR = Path("data")
-    out_path = os.path.join(DATA_DIR, 'splitted_datasets')
+    out_path = os.path.join(DATA_DIR, 'data_processed')
     new_colnames = ["user_id", "skill"]
     filename = "data.json"
     data = pd.read_json(DATA_DIR / filename, lines=True)
@@ -129,6 +129,8 @@ def main():
     # Select the training observations raw data
     tr_obsrv = data.loc[data["user_id"].isin(tr_users)]
     tr_items = pd.unique(tr_obsrv["skill"])
+
+    np.save(os.path.join(out_path, 'tr_items.npy'), tr_items)
 
     unique_uid = frozenset(data['user_id'].tolist())
     # Save index dictionaries to "numerate" later one

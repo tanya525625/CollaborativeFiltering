@@ -27,8 +27,8 @@ class DataLoader(object):
 
     def _load_train_data(self) -> csr_matrix:
         tp = pd.read_csv(self.path / "train.csv")
-        n_users = tp["user"].max() + 1
-        rows, cols = tp["user"], tp["item"]
+        n_users = tp["user_id"].max() + 1
+        rows, cols = tp["user_id"], tp["skill"]
         data = sparse.csr_matrix(
             (np.ones_like(rows), (rows, cols)),
             dtype="float32",
@@ -40,11 +40,11 @@ class DataLoader(object):
         tp_tr = pd.read_csv(self.path / "{}_tr.csv".format(datatype))
         tp_te = pd.read_csv(self.path / "{}_te.csv".format(datatype))
 
-        start_idx = min(tp_tr["user"].min(), tp_te["user"].min())
-        end_idx = max(tp_tr["user"].max(), tp_te["user"].max())
+        start_idx = min(tp_tr["user_id"].min(), tp_te["user_id"].min())
+        end_idx = max(tp_tr["user_id"].max(), tp_te["user_id"].max())
 
-        rows_tr, cols_tr = tp_tr["user"] - start_idx, tp_tr["item"]
-        rows_te, cols_te = tp_te["user"] - start_idx, tp_te["item"]
+        rows_tr, cols_tr = tp_tr["user_id"] - start_idx, tp_tr["skill"]
+        rows_te, cols_te = tp_te["user_id"] - start_idx, tp_te["skill"]
 
         data_tr = sparse.csr_matrix(
             (np.ones_like(rows_tr), (rows_tr, cols_tr)),
