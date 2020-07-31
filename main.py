@@ -1,6 +1,5 @@
 import os
 import pickle
-from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -146,11 +145,11 @@ if __name__ == "__main__":
     args = parse_args()
     DATA_DIR = Path("data")
     data_path = DATA_DIR / "_".join([args.dataset, "processed"])
-    model_name = "_".join(["pt", args.model, str(datetime.now()).replace(" ", "_")])
+    model_name = str("_".join(["pt", args.model]))
     args.save_results = True
 
-    log_dir = Path(args.log_dir)
-    model_weights = log_dir / "weights"
+    log_dir = args.log_dir
+    model_weights = os.path.join(log_dir, 'weights')
     if not os.path.exists(model_weights):
         os.makedirs(model_weights)
 
@@ -257,11 +256,11 @@ if __name__ == "__main__":
             break
         if (stop_step == 0) & (args.save_results):
             best_epoch = epoch
-            torch.save(model.state_dict(), model_weights / (model_name + ".pt"))
+            torch.save(model.state_dict(), os.path.join(model_weights, model_name + ".pt"))
 
     if args.save_results:
         # Run on test data with best model
-        model.load_state_dict(torch.load(model_weights / (model_name + ".pt")))
+        model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
         test_loss, n100, r20, r50 = eval_step(
             test_data_tr, test_data_te, data_type="test"
         )
@@ -280,4 +279,21 @@ if __name__ == "__main__":
         results_d["n100"] = n100
         results_d["r20"] = r20
         results_d["r50"] = r50
-        pickle.dump(results_d, open(str(log_dir / (model_name + ".p")), "wb"))
+        pickle.dump(results_d, open(os.path.join(log_dir, model_name + ".p"), "wb"))
+
+    model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
+    test_loss, n100, r20, r50 = eval_step(
+        test_data_tr, test_data_te, data_type="test"
+    )
+    # print(test_data_te[1])
+    X_tr_inp = torch.FloatTensor(test_data_te.toarray()).to(device)
+    X_out, mu, logvar = model(X_tr_inp)
+    sampled_z, mu, logvar = model.forward(X_out)
+    print(sampled_z)
+    print(sampled_z.size())
+    # encoder = model.encode
+    # decoder = model.decode
+    # # y = X_out[:200, :600]
+    # enc_X = encoder.forward(X_out)
+    # pred = decoder.forward(enc_X)
+    # print(pred)

@@ -119,6 +119,7 @@ def main():
     unique_skills = determine_unique_skills(data)
     sparsity = 3  # number 0 rows for each user
     data = make_table_user_item(data, new_colnames, unique_skills, sparsity)
+    data.to_csv(os.path.join(out_path, "full_enc_data.csv"), index=False)
 
     test_size = 0.2
 
