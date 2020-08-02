@@ -3,6 +3,7 @@ import json
 
 import torch
 import pandas as pd
+import numpy as np
 
 from utils.models import MultiVAE
 from utils.parser import parse_args
@@ -35,13 +36,12 @@ def make_prediction(model, matrix, path_to_dicts):
     X = torch.FloatTensor(arr).to(device)
     X_out, mu, logvar = model(X)
     sampled_z, mu, logvar = model.forward(X_out)
-
-    skill2id = read_json(os.path.join(path_to_dicts, 'dict_of_skills.json'))
-    user2id = read_json(os.path.join(path_to_dicts, 'dict_of_users.json'))
-    user_list = list(user2id.keys())
-    skills_list = list(skill2id.keys())
+    skills_list = np.load(os.path.join(path_to_dicts, 'skill2id.npy'))
+    user_list = np.load(os.path.join(DATA_DIR, 'user2id.npy'))
+    print('all read')
+    sampled_z = sampled_z.cpu().detach().numpy()
+    print(type(sampled_z))
     df = pd.DataFrame(data=sampled_z, index=user_list, columns=skills_list)
-
     return df
 
 
@@ -72,8 +72,8 @@ if __name__ == "__main__":
     model.to(device)
     model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
     loader = DataLoader(data_path)
-    data_tr, data_te = loader.load_data("test")
-    res = make_prediction(model, data_te, DATA_DIR)
+    data_tr = loader.load_data("train")
+    res = make_prediction(model, data_tr, DATA_DIR)
     print(res)
 
 

@@ -95,6 +95,8 @@ def eval_step(data_tr, data_te, data_type="valid"):
     running_loss = 0.0
     eval_idxlist = list(range(data_tr.shape[0]))
     eval_N = data_tr.shape[0]
+     # May be here
+    print(eval_N)
     eval_steps = len(range(0, eval_N, args.batch_size))
 
     n100_list, r20_list, r50_list = [], [], []
@@ -280,10 +282,5 @@ if __name__ == "__main__":
         results_d["r20"] = r20
         results_d["r50"] = r50
         pickle.dump(results_d, open(os.path.join(log_dir, model_name + ".p"), "wb"))
-
-        print(test_data_te)
-        X_tr_inp = torch.FloatTensor(test_data_te.toarray()).to(device)
-        X_out, mu, logvar = model(X_tr_inp)
-        sampled_z, mu, logvar = model.forward(X_out)
-        print(sampled_z)
+        print(p_dims, q_dims, dropout_enc, dropout_dec)
 

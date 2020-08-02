@@ -132,16 +132,17 @@ def main():
     data.columns = new_colnames
     unique_skills = determine_unique_skills(data)
     skill2id = dict((sid, i) for (i, sid) in enumerate(unique_skills))
-    with open(os.path.join(DATA_DIR, 'dict_of_skills.json'), 'w') as f:
-        json.dump(skill2id, f)
+    np.save(os.path.join(out_path, 'skill2id.npy'), list(skill2id.keys()))
     sparsity = 3  # number 0 rows for each user
     data = make_table_user_item(data, unique_skills, sparsity)
     user2id = dict((sid, i) for (i, sid) in enumerate(set(data['user'].tolist())))
-    with open(os.path.join(DATA_DIR, 'dict_of_users.json'), 'w') as f:
-        json.dump(user2id, f)
+    np.save(os.path.join(out_path, 'user2id.npy'), list(user2id.values()))
     data = numerize(data, skill2id, user2id)
     train_size = 0.8
     train, test_te, test_tr, val_te, val_tr = split_data(data, train_size)
+    # users for train
+    train_user2id = dict((sid, i) for (i, sid) in enumerate(set(train['user'].tolist())))
+    np.save(os.path.join(DATA_DIR, 'user2id.npy'), list(train_user2id.keys()))
 
     # write data
     data.to_csv(os.path.join(out_path, "full_enc_data.csv"), index=False)
