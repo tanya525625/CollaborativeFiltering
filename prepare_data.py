@@ -62,8 +62,9 @@ def split_train_test(
     return data_tr, data_te
 
 
-def make_table_user_item(df, columns_names, unique_skills, sparsity):
-    pd.DataFrame(columns=columns_names.append('rate'))
+def make_table_user_item(df, unique_skills, sparsity):
+    columns_names = ['user', 'skill', 'rate']
+    pd.DataFrame(columns=columns_names)
     pares = []
     for ind, row in df.iterrows():
         pare = row.tolist()
@@ -77,10 +78,14 @@ def make_table_user_item(df, columns_names, unique_skills, sparsity):
     return new_df
 
 
-def numerize(tp: pd.DataFrame, user2id: Dict, item2id: Dict) -> pd.DataFrame:
-    user = [user2id[x] for x in tp["user_id"]]
-    item = [item2id[x] for x in tp["skill"]]
-    return pd.DataFrame(data={"user_id": user, "skill": item}, columns=["user_id", "skill"])
+def numerize(df: pd.DataFrame, skills2id, user2id) -> pd.DataFrame:
+    rows = []
+    for ind, row in df.iterrows():
+        user_id = user2id[row[0]]
+        skill_id = skills2id[row[1]]
+        rate = row[2]
+        rows.append([user_id, skill_id, rate])
+    return pd.DataFrame(rows, columns=['user', 'skill', 'rate'])
 
 
 def determine_unique_skills(df):
@@ -106,6 +111,15 @@ def make_skills_zero_rows(user, unique_skills, sparsity):
     return rows
 
 
+def split_data(data, train_size):
+    train = data.iloc[0:int(len(data) * train_size)]
+    test_te = data.iloc[int(len(data) * train_size):int(len(data) * (train_size + 0.05))]
+    test_tr = data.iloc[int(len(data) * (train_size + 0.05)):int(len(data) * (train_size + 0.1))]
+    val_te = data.iloc[int(len(data) * (train_size + 0.1)):int(len(data) * (train_size + 0.15))]
+    val_tr = data.iloc[int(len(data) * (train_size + 0.15)):]
+    return train, test_te, test_tr, val_te, val_tr
+
+
 def main():
     DATA_DIR = Path("data")
     out_path = os.path.join(DATA_DIR, 'data_processed')
@@ -117,54 +131,25 @@ def main():
     data = data[keep_cols]
     data.columns = new_colnames
     unique_skills = determine_unique_skills(data)
-    sparsity = 3  # number 0 rows for each user
-    data = make_table_user_item(data, new_colnames, unique_skills, sparsity)
-    data.to_csv(os.path.join(out_path, "full_enc_data.csv"), index=False)
-
-    test_size = 0.2
-
-    tr_users, vd_users, te_users = split_users(
-        data['user_id'], test_users_size=test_size
-    )
-
-    # Select the training observations raw data
-    tr_obsrv = data.loc[data["user_id"].isin(tr_users)]
-    tr_items = pd.unique(tr_obsrv["skill"])
-
-    np.save(os.path.join(out_path, 'tr_items.npy'), tr_items)
-
-    unique_uid = frozenset(data['user_id'].tolist())
-    # Save index dictionaries to "numerate" later one
-    item2id = dict((sid, i) for (i, sid) in enumerate(tr_items))
-    user2id = dict((pid, i) for (i, pid) in enumerate(unique_uid))
+    skill2id = dict((sid, i) for (i, sid) in enumerate(unique_skills))
     with open(os.path.join(DATA_DIR, 'dict_of_skills.json'), 'w') as f:
-        json.dump(item2id, f)
+        json.dump(skill2id, f)
+    sparsity = 3  # number 0 rows for each user
+    data = make_table_user_item(data, unique_skills, sparsity)
+    user2id = dict((sid, i) for (i, sid) in enumerate(set(data['user'].tolist())))
+    with open(os.path.join(DATA_DIR, 'dict_of_users.json'), 'w') as f:
+        json.dump(user2id, f)
+    data = numerize(data, skill2id, user2id)
+    train_size = 0.8
+    train, test_te, test_tr, val_te, val_tr = split_data(data, train_size)
 
-    vd_obsrv = data[
-        data["user_id"].isin(vd_users)
-        & data["skill"].isin(tr_items)
-    ]
-    te_obsrv = data[
-        data["user_id"].isin(te_users)
-        & data["skill"].isin(tr_items)
-        ]
-    vd_items_tr, vd_items_te = split_train_test(vd_obsrv, test_size=test_size)
-    te_items_tr, te_items_te = split_train_test(te_obsrv, test_size=test_size)
-
-    tr_data = numerize(tr_obsrv, user2id, item2id)
-    tr_data.to_csv(os.path.join(out_path, "train.csv"), index=False)
-
-    vd_data_tr = numerize(vd_items_tr, user2id, item2id)
-    vd_data_tr.to_csv(os.path.join(out_path, "validation_tr.csv"), index=False)
-
-    vd_data_te = numerize(vd_items_te, user2id, item2id)
-    vd_data_te.to_csv(os.path.join(out_path,"validation_te.csv"), index=False)
-
-    te_data_tr = numerize(te_items_tr, user2id, item2id)
-    te_data_tr.to_csv(os.path.join(out_path,"test_tr.csv"), index=False)
-
-    te_data_te = numerize(te_items_te, user2id, item2id)
-    te_data_te.to_csv(os.path.join(out_path,"test_te.csv"), index=False)
+    # write data
+    data.to_csv(os.path.join(out_path, "full_enc_data.csv"), index=False)
+    train.to_csv(os.path.join(out_path, "train.csv"), index=False)
+    val_tr.to_csv(os.path.join(out_path, "validation_tr.csv"), index=False)
+    val_te.to_csv(os.path.join(out_path,"validation_te.csv"), index=False)
+    test_tr.to_csv(os.path.join(out_path,"test_tr.csv"), index=False)
+    test_te.to_csv(os.path.join(out_path,"test_te.csv"), index=False)
 
 
 if __name__ == "__main__":

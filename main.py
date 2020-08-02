@@ -281,19 +281,9 @@ if __name__ == "__main__":
         results_d["r50"] = r50
         pickle.dump(results_d, open(os.path.join(log_dir, model_name + ".p"), "wb"))
 
-    model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
-    test_loss, n100, r20, r50 = eval_step(
-        test_data_tr, test_data_te, data_type="test"
-    )
-    # print(test_data_te[1])
-    X_tr_inp = torch.FloatTensor(test_data_te.toarray()).to(device)
-    X_out, mu, logvar = model(X_tr_inp)
-    sampled_z, mu, logvar = model.forward(X_out)
-    print(sampled_z)
-    print(sampled_z.size())
-    # encoder = model.encode
-    # decoder = model.decode
-    # # y = X_out[:200, :600]
-    # enc_X = encoder.forward(X_out)
-    # pred = decoder.forward(enc_X)
-    # print(pred)
+        print(test_data_te)
+        X_tr_inp = torch.FloatTensor(test_data_te.toarray()).to(device)
+        X_out, mu, logvar = model(X_tr_inp)
+        sampled_z, mu, logvar = model.forward(X_out)
+        print(sampled_z)
+
