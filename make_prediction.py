@@ -1,5 +1,6 @@
 import os
 import json
+from copy import copy
 
 import torch
 import pandas as pd
@@ -38,9 +39,7 @@ def make_prediction(model, matrix, path_to_dicts):
     sampled_z, mu, logvar = model.forward(X_out)
     skills_list = np.load(os.path.join(path_to_dicts, 'skill2id.npy'))
     user_list = np.load(os.path.join(DATA_DIR, 'user2id.npy'))
-    print('all read')
     sampled_z = sampled_z.cpu().detach().numpy()
-    print(type(sampled_z))
     df = pd.DataFrame(data=sampled_z, index=user_list, columns=skills_list)
     return df
 
@@ -52,9 +51,22 @@ def read_json(path):
     return json.loads(data)
 
 
+def process_results(df, key):
+    res_rows = []
+    user_skills = []
+    for i, row in enumerate(df.values):
+        user_skills.clear()
+        for j, val in enumerate(row):
+            if val > float(key):
+                user_skills.append(df.columns[j])
+        res_rows.append({str(df.index[i]): copy(user_skills)})
+    return res_rows
+
+
 if __name__ == "__main__":
     args = parse_args()
     DATA_DIR = "data"
+    out_path = "results"
     data_path = os.path.join(DATA_DIR,"_".join([args.dataset, "processed"]))
     model_name = str("_".join(["pt", args.model]))
     log_dir = args.log_dir
@@ -73,7 +85,14 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
     loader = DataLoader(data_path)
     data_tr = loader.load_data("train")
-    res = make_prediction(model, data_tr, DATA_DIR)
-    print(res)
+    res_df = make_prediction(model, data_tr, DATA_DIR)
+    # res.to_csv(os.path.join(out_path, f"prediction_{args.n_epochs}.csv"), sep=';')
+    key = 3
+    recoms = process_results(res_df, key)
+
+    with open(os.path.join(out_path, f'prediction_{args.n_epochs}.json'), 'w') as json_file:
+        for row in recoms:
+            json_str = json.dumps(row)
+            json_file.write(json_str + '\n')
 
 

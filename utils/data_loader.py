@@ -29,7 +29,7 @@ class DataLoader(object):
     def _load_train_data(self) -> csr_matrix:
         df = pd.read_csv(os.path.join(self.path, "train.csv"))
         users, skills, rates = df["user"], df["skill"], df["rate"]
-        n_users = len(df["user"]) + 1
+        n_users = len(np.load(os.path.join(self.path, "user2id.npy"), allow_pickle=True))
         data = sparse.csr_matrix(
             (rates, (users, skills)),
             dtype="float32",
@@ -40,7 +40,7 @@ class DataLoader(object):
     def _load_full_data(self) -> csr_matrix:
         df = pd.read_csv(os.path.join(self.path, "full_enc_data.csv"))
         users, skills, rates = df["user"], df["skill"], df["rate"]
-        n_users = len(df["user"]) + 1
+        n_users = len(np.load(os.path.join(self.path, "user2id.npy"), allow_pickle=True))
         data = sparse.csr_matrix(
             (rates, (users, skills)),
             dtype="float32",
