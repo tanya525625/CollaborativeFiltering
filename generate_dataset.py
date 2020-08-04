@@ -53,8 +53,8 @@ if __name__ == "__main__":
      }
     out_path = "data"
     users_count = 20000
-    skills_min_count = 5
-    skills_max_count = 20
+    skills_min_count = 3
+    skills_max_count = 10
     common_skills = ["agile", "git", "scrum", "sql", "mysql", "linux", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
 
     dataset = generate_dataset(users_count, skills_min_count, skills_max_count, skills_dict, common_skills)

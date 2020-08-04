@@ -122,9 +122,9 @@ def split_data(data, train_size):
 
 def main():
     DATA_DIR = Path("data")
-    out_path = os.path.join(DATA_DIR, 'data_processed')
+    out_path = os.path.join(DATA_DIR, 'generated_data_processed')
     new_colnames = ["user_id", "skill"]
-    filename = "data.json"
+    filename = "generated_data.json"
     data = pd.read_json(DATA_DIR / filename, lines=True)
     data.drop('count', axis=1)
     keep_cols = ["id", "skills_dist"]

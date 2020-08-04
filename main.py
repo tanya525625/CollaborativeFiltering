@@ -124,18 +124,19 @@ def eval_step(data_tr, data_te, data_type="valid"):
                 X_out = X_out.cpu().numpy()
                 X_out[X_tr.nonzero()] = -np.inf
 
-                n100 = NDCG_binary_at_k_batch(X_out, X_te, k=100)
+                #n100 = NDCG_binary_at_k_batch(X_out, X_te, k=100)
                 r20 = Recall_at_k_batch(X_out, X_te, k=20)
-                r50 = Recall_at_k_batch(X_out, X_te, k=50)
-                n100_list.append(n100)
+                #r50 = Recall_at_k_batch(X_out, X_te, k=50)
+                #n100_list.append(n100)
                 r20_list.append(r20)
-                r50_list.append(r50)
+                #r50_list.append(r50)
 
                 t.set_postfix(loss=avg_loss)
-
-        n100_list = np.concatenate(n100_list)
+        n100_list = 1
+        r50_list = 1
+       # n100_list = np.concatenate(n100_list)
         r20_list = np.concatenate(r20_list)
-        r50_list = np.concatenate(r50_list)
+        #r50_list = np.concatenate(r50_list)
 
     return avg_loss, np.mean(n100_list), np.mean(r20_list), np.mean(r50_list)
 
@@ -144,7 +145,7 @@ if __name__ == "__main__":
 
     args = parse_args()
     DATA_DIR = Path("data")
-    data_path = DATA_DIR / "_".join([args.dataset, "processed"])
+    data_path = os.path.join(DATA_DIR, "generated_data_processed")
     model_name = str("_".join(["pt", args.model]))
     args.save_results = True
 

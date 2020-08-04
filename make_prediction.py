@@ -67,7 +67,7 @@ if __name__ == "__main__":
     args = parse_args()
     DATA_DIR = "data"
     out_path = "results"
-    data_path = os.path.join(DATA_DIR,"_".join([args.dataset, "processed"]))
+    data_path = os.path.join(DATA_DIR, "generated_data_processed")
     model_name = str("_".join(["pt", args.model]))
     log_dir = args.log_dir
     model_weights = os.path.join(log_dir, 'weights')
