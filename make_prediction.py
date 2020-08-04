@@ -38,7 +38,7 @@ def make_prediction(model, matrix, path_to_dicts):
     X_out, mu, logvar = model(X)
     sampled_z, mu, logvar = model.forward(X_out)
     skills_list = np.load(os.path.join(path_to_dicts, 'skill2id.npy'))
-    user_list = np.load(os.path.join(DATA_DIR, 'user2id.npy'))
+    user_list = np.load(os.path.join(path_to_dicts, 'user2id.npy'))
     sampled_z = sampled_z.cpu().detach().numpy()
     df = pd.DataFrame(data=sampled_z, index=user_list, columns=skills_list)
     return df
@@ -85,9 +85,9 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
     loader = DataLoader(data_path)
     data_tr = loader.load_data("train")
-    res_df = make_prediction(model, data_tr, DATA_DIR)
+    res_df = make_prediction(model, data_tr, data_path)
     # res.to_csv(os.path.join(out_path, f"prediction_{args.n_epochs}.csv"), sep=';')
-    key = 3
+    key = 5
     recoms = process_results(res_df, key)
 
     with open(os.path.join(out_path, f'prediction_{args.n_epochs}.json'), 'w') as json_file:
