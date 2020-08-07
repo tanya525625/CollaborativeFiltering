@@ -138,11 +138,13 @@ def main():
     user2id = dict((sid, i) for (i, sid) in enumerate(set(data['user'].tolist())))
     np.save(os.path.join(out_path, 'user2id.npy'), list(set(user2id.keys())))
     data = numerize(data, skill2id, user2id)
+    data = data.sample(frac=1)
     train_size = 0.8
     train, test_te, test_tr, val_te, val_tr = split_data(data, train_size)
 
     # write data
     data.to_csv(os.path.join(out_path, "full_enc_data.csv"), index=False)
+
     train.to_csv(os.path.join(out_path, "train.csv"), index=False)
     val_tr.to_csv(os.path.join(out_path, "validation_tr.csv"), index=False)
     val_te.to_csv(os.path.join(out_path,"validation_te.csv"), index=False)

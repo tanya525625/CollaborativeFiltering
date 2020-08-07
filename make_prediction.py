@@ -51,13 +51,13 @@ def read_json(path):
     return json.loads(data)
 
 
-def process_results(df, key):
+def process_results(df, key, original_data):
     res_rows = []
     user_skills = []
     for i, row in enumerate(df.values):
         user_skills.clear()
         for j, val in enumerate(row):
-            if val > float(key):
+            if val > float(key) and df.columns[j] not in original_data["skills_dist"][i]:
                 user_skills.append(df.columns[j])
         res_rows.append({str(df.index[i]): copy(user_skills)})
     return res_rows
@@ -81,14 +81,21 @@ if __name__ == "__main__":
         dropout_dec=dropout_dec,
     )
 
+    DATA_DIR = "data"
+    out_path = os.path.join(DATA_DIR, 'generated_data_processed')
+    new_colnames = ["user_id", "skill"]
+    filename = "generated_data.json"
+    data = pd.read_json(os.path.join(DATA_DIR, filename), lines=True)
+    data.drop('count', axis=1)
+
     model.to(device)
     model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
     loader = DataLoader(data_path)
     data_tr = loader.load_data("train")
     res_df = make_prediction(model, data_tr, data_path)
     # res.to_csv(os.path.join(out_path, f"prediction_{args.n_epochs}.csv"), sep=';')
-    key = 5
-    recoms = process_results(res_df, key)
+    key = 4.9
+    recoms = process_results(res_df, key, data)
 
     with open(os.path.join(out_path, f'prediction_{args.n_epochs}.json'), 'w') as json_file:
         for row in recoms:
