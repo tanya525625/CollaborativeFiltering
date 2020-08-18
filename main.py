@@ -281,5 +281,5 @@ if __name__ == "__main__":
         results_d["r20"] = r20
         results_d["r50"] = r50
         pickle.dump(results_d, open(os.path.join(log_dir, model_name + ".p"), "wb"))
-        # print(p_dims, q_dims, dropout_enc, dropout_dec)
+        print(p_dims, q_dims, dropout_enc, dropout_dec)
 

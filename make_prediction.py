@@ -81,8 +81,6 @@ if __name__ == "__main__":
         dropout_dec=dropout_dec,
     )
 
-    DATA_DIR = "data"
-    out_path = os.path.join(DATA_DIR, 'generated_data_processed')
     new_colnames = ["user_id", "skill"]
     filename = "generated_data.json"
     data = pd.read_json(os.path.join(DATA_DIR, filename), lines=True)

@@ -44,18 +44,18 @@ def generate_dataset(users_count, skills_min_count, skills_max_count, skills_dic
 if __name__ == "__main__":
     skills_dict = {
         "python-dev": ["python", "pandas", "scipy", "Scikit-learn", "numpy", "torch", "flair", "TensorFlow", "Keras"],
-        "python-tester": ["Selenium", "Python", "Pytest", "TeamCity", "Testrail"],
-        "kotlin-tester": ["Kotlin", "Kotest", "Selenium", "TeamCity", "Testrail"],
-        "web": ["HTML", "CSS", "JavaScript", "Python", "PHP", "Bootstrap", "AJAX", "jQuery", "Django", "Flask"],
-        "java-dev": ["Spring ", "Blade", "Java", "Vaadin", "Dropwizard", "Grails", "MyBatis", "JHipster", "JSF", "Google Web Toolkit"],
-        "ruby": ["Ruby", "Sinatra", "Ruby on Rails", "Merb", "Hanami"],
-        "C#": ["C#", ".NET", "ASP.NET"]
+        "python-tester": ["Selenium", "python", "Pytest", "Testrail", "unittest", "coverage", "DocTest", "Testify", "Robot"],
+        "web": ["HTML", "CSS", "JavaScript", "python", "PHP", "Bootstrap", "AJAX", "jQuery", "Django", "Flask"],
+        "java-dev": ["Spring", "Blade", "Java", "Vaadin", "Dropwizard", "Grails", "MyBatis", "JHipster", "JSF", "Google Web Toolkit"],
+        "ruby": ["Ruby", "Sinatra", "Ruby on Rails", "Merb", "Hanami", "Padrino", "NYNY", "Scorched", "Cuba", "Crepe", "Nancy"],
+        "C#": ["C#", ".NET", "ASP.NET", ".NET Core", ".NET Framework", "Unity", "Microsoft.CodeAnalysis.CSharp", "Newtonsoft.Json"],
+        "DevOps": ["Ansible", "Terraform", "AWS", "Jenkins", "TeamCity", "Linux", "bash", "ssh"]
      }
     out_path = "data"
     users_count = 20000
-    skills_min_count = 3
+    skills_min_count = 5
     skills_max_count = 10
-    common_skills = ["agile", "git", "scrum", "sql", "mysql", "linux", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
+    common_skills = ["agile", "git", "scrum", "sql", "mysql", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
 
     dataset = generate_dataset(users_count, skills_min_count, skills_max_count, skills_dict, common_skills)
     write_dataset(os.path.join(out_path, "generated_data.json"), dataset)
