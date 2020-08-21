@@ -1,9 +1,8 @@
 import os
 import sys
-import json
 import random
 from pathlib import Path
-from typing import Dict, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -120,19 +119,23 @@ def split_data(data, train_size):
     return train, test_te, test_tr, val_te, val_tr
 
 
-def main():
-    DATA_DIR = Path("data")
-    out_path = os.path.join(DATA_DIR, 'generated_data_processed')
-    new_colnames = ["user_id", "skill"]
-    filename = "generated_data.json"
-    data = pd.read_json(DATA_DIR / filename, lines=True)
-    data.drop('count', axis=1)
+def prepare_data(df, new_colnames):
+    df.drop('count', axis=1)
     keep_cols = ["id", "skills_dist"]
-    data = data[keep_cols]
-    data.columns = new_colnames
-    unique_skills = determine_unique_skills(data)
-    skill2id = dict((sid, i) for (i, sid) in enumerate(unique_skills))
-    np.save(os.path.join(out_path, 'skill2id.npy'), list(skill2id.keys()))
+    df = df[keep_cols]
+    df.columns = new_colnames
+    return df
+
+
+def find_unique_skills(general_data, vacancies_data):
+    unique_skills = determine_unique_skills(general_data)
+    vac_unique_skills = determine_unique_skills(vacancies_data)
+    all_unique_skills = set.union(vac_unique_skills, unique_skills)
+    skill2id = dict((sid, i) for (i, sid) in enumerate(all_unique_skills))
+    return all_unique_skills, skill2id
+
+
+def make_processed_data(data, out_path, unique_skills, skill2id):
     sparsity = 3  # number 0 rows for each user
     data = make_table_user_item(data, unique_skills, sparsity)
     user2id = dict((sid, i) for (i, sid) in enumerate(set(data['user'].tolist())))
@@ -141,15 +144,30 @@ def main():
     data = data.sample(frac=1)
     train_size = 0.8
     train, test_te, test_tr, val_te, val_tr = split_data(data, train_size)
-
     # write data
     data.to_csv(os.path.join(out_path, "full_enc_data.csv"), index=False)
-
     train.to_csv(os.path.join(out_path, "train.csv"), index=False)
     val_tr.to_csv(os.path.join(out_path, "validation_tr.csv"), index=False)
-    val_te.to_csv(os.path.join(out_path,"validation_te.csv"), index=False)
-    test_tr.to_csv(os.path.join(out_path,"test_tr.csv"), index=False)
-    test_te.to_csv(os.path.join(out_path,"test_te.csv"), index=False)
+    val_te.to_csv(os.path.join(out_path, "validation_te.csv"), index=False)
+    test_tr.to_csv(os.path.join(out_path, "test_tr.csv"), index=False)
+    test_te.to_csv(os.path.join(out_path, "test_te.csv"), index=False)
+
+
+def main():
+    DATA_DIR = Path("data")
+    vac_out_path = os.path.join(DATA_DIR, 'vacancy_data_processed')
+    gen_out_path = os.path.join(DATA_DIR, 'generated_data_processed')
+    new_colnames = ["user_id", "skill"]
+    general_filename = "generated_data.json"
+    vacancy_dataset_filename = "vacancies.json"
+    data = pd.read_json(DATA_DIR / general_filename, lines=True)
+    vac_data = pd.read_json(DATA_DIR / vacancy_dataset_filename, lines=True)
+    data = prepare_data(data, new_colnames)
+    vacancies_data = prepare_data(vac_data, new_colnames)
+    unique_skills, skill2id = find_unique_skills(data, vacancies_data)
+    np.save(os.path.join(DATA_DIR, 'skill2id.npy'), list(skill2id.keys()))
+    make_processed_data(data, gen_out_path, unique_skills, skill2id)
+    make_processed_data(vac_data, vac_out_path, unique_skills, skill2id)
 
 
 if __name__ == "__main__":

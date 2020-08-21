@@ -23,7 +23,6 @@ def generate_dataset(users_count, skills_min_count, skills_max_count, skills_dic
     user_skills = []
     skills = []
     rows = []
-    print("Added users")
     for i in tqdm(range(users_count)):
         profession = professions_list[random.randint(0, professions_count - 1)]
         skills.clear()
@@ -43,20 +42,50 @@ def generate_dataset(users_count, skills_min_count, skills_max_count, skills_dic
 
 if __name__ == "__main__":
     skills_dict = {
-        "python-dev": ["python", "pandas", "scipy", "Scikit-learn", "numpy", "torch", "flair", "TensorFlow", "Keras"],
-        "python-tester": ["Selenium", "python", "Pytest", "Testrail", "unittest", "coverage", "DocTest", "Testify", "Robot"],
-        "web": ["HTML", "CSS", "JavaScript", "python", "PHP", "Bootstrap", "AJAX", "jQuery", "Django", "Flask"],
-        "java-dev": ["Spring", "Blade", "Java", "Vaadin", "Dropwizard", "Grails", "MyBatis", "JHipster", "JSF", "Google Web Toolkit"],
-        "ruby": ["Ruby", "Sinatra", "Ruby on Rails", "Merb", "Hanami", "Padrino", "NYNY", "Scorched", "Cuba", "Crepe", "Nancy"],
-        "C#": ["C#", ".NET", "ASP.NET", ".NET Core", ".NET Framework", "Unity", "Microsoft.CodeAnalysis.CSharp", "Newtonsoft.Json"],
+        "python-dev": ["python3", "python", "pandas", "scipy", "Scikit-learn", "numpy", "torch", "flair", "TensorFlow", "Keras"],
+        "python-tester": ["python3", "Selenium", "python", "Pytest", "Testrail",
+                          "unittest", "coverage", "DocTest", "Testify", "Robot"],
+        "web": ["HTML", "CSS", "JavaScript", "python3", "python", "PHP", "Bootstrap", "AJAX", "jQuery", "Django", "Flask"],
+        "java-dev": ["Spring", "Blade", "Java", "Vaadin", "Dropwizard",
+                     "Grails", "MyBatis", "JHipster", "JSF", "Google Web Toolkit"],
+        "ruby": ["Ruby", "Sinatra", "Ruby on Rails", "Merb", "Hanami",
+                 "Padrino", "NYNY", "Scorched", "Crepe", "Nancy"],
+        "C#": ["C#", ".NET", "ASP.NET", ".NET Core", ".NET Framework",
+               "Microsoft.CodeAnalysis.CSharp"],
         "DevOps": ["Ansible", "Terraform", "AWS", "Jenkins", "TeamCity", "Linux", "bash", "ssh"]
      }
+
+    vacancies = {
+        "python-dev": ["python2", "python", "pandas", "Scikit-learn", "torch", "TensorFlow", "Keras"],
+        "python-tester": ["Selenium", "python", "Pytest", "Testrail",
+                          "unittest", "coverage", "DocTest", "Testify", "Robot"],
+        "web": ["HTML", "CSS", "JavaScript", "python", "PHP", "Bootstrap", "AJAX", "jQuery", "Django", "Flask"],
+        "java-dev": ["Spring", "Blade", "Java", "Vaadin", "Dropwizard",
+                     "Grails", "MyBatis", "JHipster", "JSF", "Google Web Toolkit"],
+        "ruby": ["Ruby", "Sinatra", "Ruby on Rails", "Merb",
+                 "Padrino", "NYNY", "Scorched", "Cuba"],
+        "C#": ["C#", ".NET", "ASP.NET", ".NET Core", ".NET Framework",
+               "Unity", "Newtonsoft.Json"],
+        "DevOps": ["Ansible", "Terraform", "Jenkins", "TeamCity", "Linux"]
+    }
     out_path = "data"
     users_count = 20000
+    vacancies_count = 10000
     skills_min_count = 5
     skills_max_count = 10
-    common_skills = ["agile", "git", "scrum", "sql", "mysql", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
+    skills_vacancies_min = 8
+    skills_vacancies_max = 15
 
+    common_skills = ["agile", "git", "RabbitMQ", "scrum", "sql",
+                     "mysql", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
+
+    common_vacancies_skills = ["agile", "git", "Kafka", "scrum", "sql",
+                               "mysql", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
+
+    print("Added items")
     dataset = generate_dataset(users_count, skills_min_count, skills_max_count, skills_dict, common_skills)
+    vacancies_dataset = generate_dataset(vacancies_count, skills_vacancies_min, skills_vacancies_max,
+                                         vacancies, common_vacancies_skills)
     write_dataset(os.path.join(out_path, "generated_data.json"), dataset)
+    write_dataset(os.path.join(out_path, "vacancies.json"), vacancies_dataset)
 

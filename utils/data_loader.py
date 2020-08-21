@@ -8,14 +8,15 @@ from scipy.sparse.csr import csr_matrix
 
 
 class DataLoader(object):
-    def __init__(self, path):
+    def __init__(self, path, skills_path):
         super(DataLoader, self).__init__()
 
         self.path = path
+        self.skills_path = skills_path
         self.n_items = self._n_items()
 
     def _n_items(self):
-        tr_items = np.load(os.path.join(self.path, "skill2id.npy"), allow_pickle=True)
+        tr_items = np.load(os.path.join(self.skills_path, "skill2id.npy"), allow_pickle=True)
         return len(tr_items)
 
     def load_data(self, datatype: str = "train"):

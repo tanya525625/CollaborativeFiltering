@@ -145,8 +145,8 @@ if __name__ == "__main__":
 
     args = parse_args()
     DATA_DIR = Path("data")
-    data_path = os.path.join(DATA_DIR, "generated_data_processed")
-    model_name = str("_".join(["pt", args.model]))
+    data_path = os.path.join(DATA_DIR, "vacancy_data_processed")
+    model_name = 'vacancy_' + str("_".join(["pt", args.model]))
     args.save_results = True
 
     log_dir = args.log_dir
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     if not os.path.exists(model_weights):
         os.makedirs(model_weights)
 
-    data_loader = DataLoader(data_path)
+    data_loader = DataLoader(data_path, DATA_DIR)
     n_items = data_loader.n_items
     train_data = data_loader.load_data("train")
     valid_data_tr, valid_data_te = data_loader.load_data("validation")

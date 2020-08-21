@@ -60,7 +60,7 @@ def parse_args():
         help="Patience for ReduceLROnPlateau lr_scheduler before decreasing lr",
     )
     parser.add_argument(
-        "--eval_every", type=int, default=1, help="Evaluate every N epochs"
+        "--eval_every", type=int, default=50, help="Evaluate every N epochs"
     )
     parser.add_argument(
         "--early_stop_patience",
