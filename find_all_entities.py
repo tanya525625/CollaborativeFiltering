@@ -19,11 +19,11 @@ def find_enties_in_row(df):
                 if re.search(r'label*:', el):
                     сurr_labels.append(el.split(': ')[1])
         if сurr_labels:
+            if len(сurr_labels) != len(curr_items):
+                curr_items = curr_items[:len(сurr_labels)-1]
             entities, items_labels = make_unique_lists(сurr_labels, curr_items)
             items.append(entities)
             labels.append(items_labels)
-        else:
-            print(row)
 
     return pd.DataFrame(data={'labels': labels, 'entities': items})
 
@@ -31,9 +31,11 @@ def find_enties_in_row(df):
 def make_unique_lists(labels, entities):
     low_ents = [ent.lower() for ent in entities]
     unique_items = list(set(low_ents))
+    ordered_items_indexes = [unique_items.index(ent) for ent in unique_items]
+    ordered_items = [low_ents[ind] for ind in ordered_items_indexes]
     unique_items_indexes = [unique_items.index(ent) for ent in unique_items]
     items_labels = [labels[ind] for ind in unique_items_indexes]
-    return unique_items, items_labels
+    return ordered_items, items_labels
 
 
 if __name__ == "__main__":
