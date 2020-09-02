@@ -23,7 +23,11 @@ def generate_dataset(users_count, skills_min_count, skills_max_count, skills_dic
     user_skills = []
     skills = []
     rows = []
+    is_added = False
     for i in tqdm(range(users_count)):
+        if i > users_count - users_count // 80 and not is_added:
+            skills_dict['python-dev'].append('knime')
+            is_added = True
         profession = professions_list[random.randint(0, professions_count - 1)]
         skills.clear()
         skills = skills_dict[profession] + common_skills
@@ -60,7 +64,7 @@ if __name__ == "__main__":
         "python-tester": ["Selenium", "python", "Pytest", "Testrail",
                           "unittest", "coverage", "DocTest", "Testify", "Robot"],
         "web": ["HTML", "CSS", "JavaScript", "python", "PHP", "Bootstrap", "AJAX", "jQuery", "Django", "Flask"],
-        "java-dev": ["Spring", "Blade", "Java", "Vaadin", "Dropwizard",
+        "java-dev": ["Spring", "Blade", "Java", "Vaadin", "Dropwizard", "Kafka",
                      "Grails", "MyBatis", "JHipster", "JSF", "Google Web Toolkit"],
         "ruby": ["Ruby", "Sinatra", "Ruby on Rails", "Merb",
                  "Padrino", "NYNY", "Scorched", "Cuba"],
@@ -68,24 +72,24 @@ if __name__ == "__main__":
                "Unity", "Newtonsoft.Json"],
         "DevOps": ["Ansible", "Terraform", "Jenkins", "TeamCity", "Linux"]
     }
-    out_path = "data"
-    users_count = 20000
+    out_path = os.path.join("data", "test_data")
+    users_count = 50
     vacancies_count = 10000
     skills_min_count = 5
-    skills_max_count = 10
-    skills_vacancies_min = 8
+    skills_max_count = 9
+    skills_vacancies_min = 10
     skills_vacancies_max = 15
 
     common_skills = ["agile", "git", "RabbitMQ", "scrum", "sql",
-                     "mysql", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
+                     "mysql", "windows", "docker", "jira", "gitlab"]
 
-    common_vacancies_skills = ["agile", "git", "Kafka", "scrum", "sql",
-                               "mysql", "windows", "docker", "jira", "gitlab", "PostgreSQL"]
+    common_vacancies_skills = ["agile", "git", "scrum", "sql",
+                               "mysql", "windows", "docker", "jira", "gitlab"]
 
     print("Added items")
     dataset = generate_dataset(users_count, skills_min_count, skills_max_count, skills_dict, common_skills)
     vacancies_dataset = generate_dataset(vacancies_count, skills_vacancies_min, skills_vacancies_max,
                                          vacancies, common_vacancies_skills)
-    write_dataset(os.path.join(out_path, "generated_data.json"), dataset)
-    write_dataset(os.path.join(out_path, "vacancies.json"), vacancies_dataset)
+    write_dataset(os.path.join(out_path, "test_data.json"), dataset)
+    write_dataset(os.path.join(out_path, "new_vacancies.json"), vacancies_dataset)
 
