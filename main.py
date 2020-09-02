@@ -145,8 +145,8 @@ if __name__ == "__main__":
 
     args = parse_args()
     DATA_DIR = Path("data")
-    data_path = os.path.join(DATA_DIR, "filtered_dataset_path")
-    model_name = 'vae_on_filtered_dataset'
+    data_path = os.path.join(DATA_DIR, "vacancy_data_processed")
+    model_name = 'vacancy_' + str("_".join(["pt", args.model]))
     args.save_results = True
 
     log_dir = args.log_dir

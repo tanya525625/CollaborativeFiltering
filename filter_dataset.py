@@ -26,8 +26,8 @@ def filter_df(df, goal_cols, skills_drop_list):
     pos_with_one_skills = 0
     template = {"count": 0, "skills_stats": {}}
     for ind, row in df.iterrows():
-        labels = row[0].replace('[', '').replace(']', '').replace('\'', '').replace('`', '').split(', ')
-        ents = row[1].replace('[', '').replace(']', '').replace('\'', '').replace('`', '').split(', ')
+        labels = row[0].replace('[', '').replace(']', '').replace('\'', '').split(', ')
+        ents = row[1].replace('[', '').replace(']', '').replace('\'', '').split(', ')
         row_dict = dict(zip(labels, ents))
         if 'Position' in labels:
             position = row_dict.pop('Position')
@@ -39,6 +39,7 @@ def filter_df(df, goal_cols, skills_drop_list):
             for drop_skill in skills_drop_list:
                 if drop_skill in curr_skills:
                     curr_skills.remove(drop_skill)
+                    print(curr_skills)
             skills.append(curr_skills)
             positions.append(position)
             if position not in stats.keys():
@@ -51,6 +52,7 @@ def filter_df(df, goal_cols, skills_drop_list):
             if len(curr_skills) == 1:
                 pos_with_one_skills += 1
     stats = sort_dict(stats)
+    print(f'Positions with one skill: {pos_with_one_skills}')
     return pd.DataFrame({'Position': positions, 'Skills': skills}), stats
 
 

@@ -36,12 +36,12 @@ def save_files(df_seria, filepath):
 def main():
     data_dir = "data"
     st_path = os.path.join(data_dir, "model_dataset_statistics")
-    is_save = False
+    is_save = 0
     input_path = os.path.join(data_dir, "filtered_dataset.csv")
     if is_save:
         df = pd.read_csv(input_path)
-        save_files(df['Position'].tolist(), os.path.join(data_dir, "all_labels.npy"))
-        save_files(df['Skills'].tolist(), os.path.join(data_dir, "all_items.npy"))
+        save_files(df['labels'].tolist(), os.path.join(data_dir, "all_labels.npy"))
+        save_files(df['entities'].tolist(), os.path.join(data_dir, "all_items.npy"))
     else:
         labels = np.load(os.path.join(data_dir, "all_labels.npy"), allow_pickle=True).tolist()
         items = np.load(os.path.join(data_dir, "all_items.npy"), allow_pickle=True).tolist()
