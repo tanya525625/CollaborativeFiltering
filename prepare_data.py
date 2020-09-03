@@ -156,10 +156,10 @@ def make_processed_data(data, out_path, unique_skills, skill2id):
 def main():
     DATA_DIR = Path("data")
     vac_out_path = os.path.join(DATA_DIR, 'vacancy_data_processed')
-    gen_out_path = os.path.join(DATA_DIR, 'generated_data_processed')
+    gen_out_path = os.path.join(DATA_DIR, 'filtered_dataset_path')
     new_colnames = ["user_id", "skill"]
-    general_filename = "generated_data.json"
-    vacancy_dataset_filename = "vacancies.json"
+    general_filename = "filtered_dataset.json"
+    vacancy_dataset_filename = "filtered_dataset.json"
     data = pd.read_json(DATA_DIR / general_filename, lines=True)
     vac_data = pd.read_json(DATA_DIR / vacancy_dataset_filename, lines=True)
     data = prepare_data(data, new_colnames)
