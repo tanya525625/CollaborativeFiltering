@@ -22,6 +22,7 @@ def sort_dict(data):
 def filter_df(df, goal_cols, skills_drop_list):
     positions = []
     skills = []
+    indexes = []
     stats = {}
     pos_with_one_skills = 0
     template = {"count": 0, "skills_stats": {}}
@@ -41,6 +42,7 @@ def filter_df(df, goal_cols, skills_drop_list):
                     curr_skills.remove(drop_skill)
             skills.append(curr_skills)
             positions.append(position)
+            indexes.append(ind)
             if position not in stats.keys():
                 stats.update({position: deepcopy(template)})
             for skill in curr_skills:
@@ -51,7 +53,7 @@ def filter_df(df, goal_cols, skills_drop_list):
             if len(curr_skills) == 1:
                 pos_with_one_skills += 1
     stats = sort_dict(stats)
-    return pd.DataFrame({'Position': positions, 'Skills': skills}), stats
+    return pd.DataFrame({'Indexes': indexes, 'Skills': skills, 'Position': positions}), stats
 
 
 def main():

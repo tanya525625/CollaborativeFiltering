@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import random
 from pathlib import Path
 from typing import Tuple, Union
@@ -61,7 +62,7 @@ def split_train_test(
     return data_tr, data_te
 
 
-def make_table_user_item(df, unique_skills, sparsity):
+def make_table_user_item(df, unique_skills, sparsity, idf_dict):
     columns_names = ['user', 'skill', 'rate']
     pd.DataFrame(columns=columns_names)
     pares = []
@@ -119,6 +120,13 @@ def split_data(data, train_size):
     return train, test_te, test_tr, val_te, val_tr
 
 
+def compute_idf(word, corpus):
+  if word in corpus:
+    return math.log10(len(corpus)/sum([1.0 for i in corpus if word in i]))
+  else:
+    return 0
+
+
 def prepare_data(df, new_colnames):
     df.drop('count', axis=1)
     keep_cols = ["id", "skills_dist"]
@@ -135,9 +143,9 @@ def find_unique_skills(general_data, vacancies_data):
     return all_unique_skills, skill2id
 
 
-def make_processed_data(data, out_path, unique_skills, skill2id):
+def make_processed_data(data, out_path, unique_skills, skill2id, idf_dict):
     sparsity = 3  # number 0 rows for each user
-    data = make_table_user_item(data, unique_skills, sparsity)
+    data = make_table_user_item(data, unique_skills, sparsity, idf_dict)
     user2id = dict((sid, i) for (i, sid) in enumerate(set(data['user'].tolist())))
     np.save(os.path.join(out_path, 'user2id.npy'), list(set(user2id.keys())))
     data = numerize(data, skill2id, user2id)
@@ -153,21 +161,38 @@ def make_processed_data(data, out_path, unique_skills, skill2id):
     test_te.to_csv(os.path.join(out_path, "test_te.csv"), index=False)
 
 
+def make_idf_dict(dataset, skills_list):
+    idf_dict = {}
+    corpus = []
+    for skill_list in dataset['skill'].values.tolist():
+      corpus.extend(skill_list)
+    for skill in skills_list:
+      idf_dict.update({skill: compute_idf(skill, corpus)})
+    return idf_dict
+
+
 def main():
     DATA_DIR = Path("data")
-    vac_out_path = os.path.join(DATA_DIR, 'vacancy_data_processed')
-    gen_out_path = os.path.join(DATA_DIR, 'filtered_dataset_path')
+    united_path = os.path.join(DATA_DIR, "balanced_filtered_dataset_path")
+    vac_out_path = os.path.join(united_path, 'vacancy_data')
+    gen_out_path = os.path.join(united_path, 'employee_data')
+    os.mkdir(united_path)
+    os.mkdir(gen_out_path)
+    os.mkdir(vac_out_path)
     new_colnames = ["user_id", "skill"]
-    general_filename = "filtered_dataset.json"
-    vacancy_dataset_filename = "filtered_dataset.json"
+    general_filename = "balanced_filtered_dataset.json"
+    vacancy_dataset_filename = "kmeans_vacancies.json"
+
     data = pd.read_json(DATA_DIR / general_filename, lines=True)
     vac_data = pd.read_json(DATA_DIR / vacancy_dataset_filename, lines=True)
+
     data = prepare_data(data, new_colnames)
     vacancies_data = prepare_data(vac_data, new_colnames)
     unique_skills, skill2id = find_unique_skills(data, vacancies_data)
-    np.save(os.path.join(DATA_DIR, 'skill2id.npy'), list(skill2id.keys()))
-    make_processed_data(data, gen_out_path, unique_skills, skill2id)
-    make_processed_data(vac_data, vac_out_path, unique_skills, skill2id)
+    np.save(os.path.join(united_path, 'skill2id.npy'), list(skill2id.keys()))
+    idf_dict = make_idf_dict(data, list(skill2id.keys()))
+    make_processed_data(data, gen_out_path, unique_skills, skill2id, idf_dict)
+    make_processed_data(vac_data, vac_out_path, unique_skills, skill2id, idf_dict)
 
 
 if __name__ == "__main__":

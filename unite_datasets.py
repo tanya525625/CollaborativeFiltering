@@ -19,8 +19,8 @@ def read_dataset(file_path):
 def main():
     data_dir = "data"
     filepath = os.path.join(data_dir, "united_dataset.json")
-    users_dataset_path = os.path.join(data_dir, "generated_data.json")
-    vacancy_dataset_path = os.path.join(data_dir, "vacancies.json")
+    users_dataset_path = os.path.join(data_dir, "kmeans_data.json")
+    vacancy_dataset_path = os.path.join(data_dir, "kmeans_vacancies.json")
 
     users_data = read_dataset(users_dataset_path)
     vacancies_data = read_dataset(vacancy_dataset_path)

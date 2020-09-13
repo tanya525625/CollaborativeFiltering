@@ -19,6 +19,10 @@ def prepare_dataset(df):
     return res_dicts
 
 
+def make_lists(data):
+    return data.replace(']', '').replace('[', '').replace("'", '').split(', ')
+
+
 def main():
     data_dir = "data"
     dataset_path = os.path.join(data_dir, "filtered_dataset.csv")
@@ -26,6 +30,7 @@ def main():
 
     dataset = pd.read_csv(dataset_path)
     dataset = dataset.drop('Unnamed: 0', axis=1)
+    dataset['Skills'] = dataset['Skills'].apply(make_lists)
     res_dicts = prepare_dataset(dataset)
     write_dataset(output_path, res_dicts)
 

@@ -7,6 +7,8 @@ from tqdm import tqdm
 def determine_skills_count(skills_min_count, skills_max_count, quantity):
     if skills_max_count > quantity:
         skills_max_count = quantity
+    if skills_min_count > skills_max_count:
+        skills_min_count = skills_max_count
     return random.randint(skills_min_count, skills_max_count)
 
 
@@ -25,9 +27,9 @@ def generate_dataset(users_count, skills_min_count, skills_max_count, skills_dic
     rows = []
     is_added = False
     for i in tqdm(range(users_count)):
-        if i > users_count - users_count // 80 and not is_added:
-            skills_dict['python-dev'].append('knime')
-            is_added = True
+        # if i > users_count - users_count // 80 and not is_added:
+        #     skills_dict['python-dev'].append('knime')
+        #     is_added = True
         profession = professions_list[random.randint(0, professions_count - 1)]
         skills.clear()
         skills = skills_dict[profession] + common_skills
@@ -72,11 +74,15 @@ if __name__ == "__main__":
                "Unity", "Newtonsoft.Json"],
         "DevOps": ["Ansible", "Terraform", "Jenkins", "TeamCity", "Linux"]
     }
-    out_path = os.path.join("data", "test_data")
-    users_count = 50
+    data_dir = "data"
+    with open(os.path.join(data_dir, "KMEANS_cluster_dict_for_gen.json")) as json_data:
+        skills_dict = json.load(json_data)
+    vacancies = skills_dict
+    out_path = os.path.join(data_dir, "test_data")
+    users_count = 20000
     vacancies_count = 10000
-    skills_min_count = 5
-    skills_max_count = 9
+    skills_min_count = 8
+    skills_max_count = 15
     skills_vacancies_min = 10
     skills_vacancies_max = 15
 
@@ -86,10 +92,12 @@ if __name__ == "__main__":
     common_vacancies_skills = ["agile", "git", "scrum", "sql",
                                "mysql", "windows", "docker", "jira", "gitlab"]
 
+    common_skills, common_vacancies_skills = [], []
+
     print("Added items")
     dataset = generate_dataset(users_count, skills_min_count, skills_max_count, skills_dict, common_skills)
     vacancies_dataset = generate_dataset(vacancies_count, skills_vacancies_min, skills_vacancies_max,
                                          vacancies, common_vacancies_skills)
-    write_dataset(os.path.join(out_path, "test_data.json"), dataset)
-    write_dataset(os.path.join(out_path, "new_vacancies.json"), vacancies_dataset)
+    write_dataset(os.path.join(data_dir, "kmeans_data.json"), dataset)
+    write_dataset(os.path.join(data_dir, "kmeans_vacancies.json"), vacancies_dataset)
 

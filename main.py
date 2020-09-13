@@ -145,8 +145,9 @@ if __name__ == "__main__":
 
     args = parse_args()
     DATA_DIR = Path("data")
-    data_path = os.path.join(DATA_DIR, "filtered_dataset_path")
-    model_name = 'vae_on_filtered_dataset'
+    data_path = os.path.join(DATA_DIR, "balanced_filtered_dataset_path")
+    dataset_path = os.path.join(data_path, 'employee_data')
+    model_name = 'vae_on_balanced_filtered_dataset'
     args.save_results = True
 
     log_dir = args.log_dir
@@ -154,7 +155,7 @@ if __name__ == "__main__":
     if not os.path.exists(model_weights):
         os.makedirs(model_weights)
 
-    data_loader = DataLoader(data_path, DATA_DIR)
+    data_loader = DataLoader(dataset_path, data_path)
     n_items = data_loader.n_items
     train_data = data_loader.load_data("train")
     valid_data_tr, valid_data_te = data_loader.load_data("validation")
