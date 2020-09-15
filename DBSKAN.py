@@ -7,7 +7,7 @@ import numpy as np
 
 
 def find_classes(data):
-    clustering = KMeans(n_clusters=300, random_state=0).fit(data)
+    clustering = KMeans(n_clusters=50, random_state=0).fit(data)
     # clustering = DBSCAN(eps=0.5, min_samples=2).fit(data)
     return clustering.labels_
 

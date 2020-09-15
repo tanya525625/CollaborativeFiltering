@@ -145,9 +145,9 @@ if __name__ == "__main__":
 
     args = parse_args()
     DATA_DIR = Path("data")
-    data_path = os.path.join(DATA_DIR, "balanced_filtered_dataset_path")
+    data_path = os.path.join(DATA_DIR, "balanced_one_hot_dataset")
     dataset_path = os.path.join(data_path, 'employee_data')
-    model_name = 'vae_on_balanced_filtered_dataset'
+    model_name = 'vae_on_balanced_one_hot_dataset'
     args.save_results = True
 
     log_dir = args.log_dir

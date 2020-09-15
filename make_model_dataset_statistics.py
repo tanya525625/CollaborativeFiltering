@@ -1,5 +1,6 @@
 import os
 import json
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -8,6 +9,14 @@ import pandas as pd
 def write_dict(data, filepath):
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+def sort_dict(data):
+    stats = OrderedDict(sorted(data.items(), key=lambda x: x[1]['count'], reverse=True))
+    for position in data.keys():
+        stats[position]["skills_stats"] = OrderedDict(sorted(data[position]["skills_stats"].items(),
+                                                             key=lambda x: x[1], reverse=True))
+    return stats
 
 
 def make_statistics(items):

@@ -73,7 +73,7 @@ def make_table_user_item(df, unique_skills, sparsity, idf_dict):
         zero_rows = make_skills_zero_rows(user, unique_skills, sparsity)
         pares += zero_rows
         for skill in skill_list:
-            pares.append([user, skill, 1])
+            pares.append([user, skill, idf_dict[skill]])
     new_df = pd.DataFrame(pares, columns=columns_names)
     return new_df
 
@@ -173,15 +173,15 @@ def make_idf_dict(dataset, skills_list):
 
 def main():
     DATA_DIR = Path("data")
-    united_path = os.path.join(DATA_DIR, "balanced_filtered_dataset_path")
+    united_path = os.path.join(DATA_DIR, "balanced_one_hot_dataset")
     vac_out_path = os.path.join(united_path, 'vacancy_data')
     gen_out_path = os.path.join(united_path, 'employee_data')
     os.mkdir(united_path)
     os.mkdir(gen_out_path)
     os.mkdir(vac_out_path)
     new_colnames = ["user_id", "skill"]
-    general_filename = "balanced_filtered_dataset.json"
-    vacancy_dataset_filename = "kmeans_vacancies.json"
+    general_filename = "balanced_one_hot_dataset.json"
+    vacancy_dataset_filename = "filtered_dataset.json"
 
     data = pd.read_json(DATA_DIR / general_filename, lines=True)
     vac_data = pd.read_json(DATA_DIR / vacancy_dataset_filename, lines=True)

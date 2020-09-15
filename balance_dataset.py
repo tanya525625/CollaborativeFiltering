@@ -33,6 +33,13 @@ def find_k_nearest_neigh(vect, vectors, k_neigh):
     return [vectors[dists.index(i)] for i in best_dists]
 
 
+def make_one_hot_mean_emb(vector, nearest_vectors):
+    new_vect = vector
+    for near_vect in nearest_vectors:
+        new_vect = new_vect | near_vect
+    return new_vect
+
+
 def oversampler(emb_list, ready_list_length, k_neigh):
     list_length = len(emb_list)
     diff = ready_list_length - list_length
@@ -44,34 +51,47 @@ def oversampler(emb_list, ready_list_length, k_neigh):
         vectors_for_finding = copy(emb_list)
         vector = vectors_for_finding.pop(vect_ind)
         nearest_vectors = find_k_nearest_neigh(vector, vectors_for_finding, k_neigh)
-        new_embs.append(find_mean_emb(nearest_vectors))
+        new_embs.append(make_one_hot_mean_emb(vector, nearest_vectors))
+        # for VAE version
+        # new_embs.append(find_mean_emb(nearest_vectors))
     new_embs += emb_list
+    return new_embs
+
+
+def undersampler(emb_list, ready_list_length):
+    list_length = len(emb_list)
+    diff = list_length - ready_list_length
+    new_embs = []
+    while len(new_embs) < diff:
+        vect_ind = random.randint(0, list_length - 1)
+        new_embs.append(emb_list[vect_ind])
     return new_embs
 
 
 def find_mean_emb(embeddings):
     emb_matrix = np.array(embeddings)
     emb_matrix = np.transpose(emb_matrix).tolist()
-    return [np.mean(lst) for lst in emb_matrix]
+    mean_vect = [np.mean(lst) for lst in emb_matrix]
+    return mean_vect
 
 
-def balance_dataset(dataset, k_neigh=5):
+def balance_dataset(dataset, k_neigh=20):
     dataset = dataset.groupby('classes').apply(concat_embs)
     mean_len = int(np.mean(embs_length))
     balanced_dataset = []
     embeddings_matr = []
     for i, emb_list in tqdm(enumerate(dataset)):
         if len(emb_list) >= mean_len:
-            new_list = emb_list[:mean_len-1]
+            new_list = undersampler(emb_list, mean_len)
             for lst in new_list:
                 embeddings_matr.append(np.array(lst))
-                balanced_dataset.append([lst, i])
+                balanced_dataset.append([list(lst), i])
         else:
             new_list = oversampler(emb_list, mean_len, k_neigh)
             for lst in new_list:
                 embeddings_matr.append(np.array(lst))
-                balanced_dataset.append([lst, i])
-    return pd.DataFrame(balanced_dataset, columns=['embeddings', 'classes']), np.array(embeddings_matr)
+                balanced_dataset.append([list(lst), i])
+    return pd.DataFrame(data=balanced_dataset, columns=['embeddings', 'classes']), np.array(embeddings_matr)
 
 
 def norm_matr(matrix):
@@ -109,29 +129,47 @@ def make_train_dataset(dataset):
     return rows
 
 
+def decode_one_hot_enc(array, all_skills):
+    skills_rows = []
+    curr_skills = []
+    for i, row in enumerate(array):
+        curr_skills.clear()
+        for j, el in enumerate(row):
+            if el == 1:
+                curr_skills.append(all_skills[j])
+        skills_rows.append(copy(curr_skills))
+    return skills_rows
+
+
 def main():
     data_dir = "data"
     data_model_dir = os.path.join(data_dir, "filtered_dataset_path")
-    out_filepath = os.path.join(data_dir, "balanced_filtered_dataset.json")
-    # dataset = pd.read_parquet(os.path.join(data_dir, "classification_dataset.parquet"))
-    # balanced_df, emb_matrix = balance_dataset(dataset)
-    # np.save(os.path.join(data_dir, "balanced_embeddings.npy"), emb_matrix)
-    emb_matrix = np.load(os.path.join(data_dir, "balanced_embeddings.npy"), allow_pickle=True)
-    skills_list = np.load(os.path.join(data_model_dir, "skill2id.npy"), allow_pickle=True).tolist()
+    out_filepath = os.path.join(data_dir, "balanced_one_hot_dataset.json")
+    meta_out_path = os.path.join(data_dir, "balanced_meta.tsv")
+    dataset = pd.read_parquet(os.path.join(data_dir, "classification_dataset.parquet"))
+    balanced_df, emb_matrix = balance_dataset(dataset)
+    np.save(os.path.join(data_dir, "balanced_embeddings.npy"), emb_matrix)
+    # emb_matrix = np.load(os.path.join(data_dir, "balanced_embeddings.npy"), allow_pickle=True)
+    skills_list = np.load(os.path.join(data_dir, "skill2id.npy"), allow_pickle=True).tolist()
 
-    model_name = 'vae_on_filtered_dataset'
-    log_dir = "results"
-    p_dims, q_dims, dropout_enc, dropout_dec = [200, 600, 1304], [1304, 600, 200], [0.5, 0.0], [0.0, 0.0]
-    model_weights = os.path.join(log_dir, 'weights')
-    model = MultiVAE(
-        p_dims=p_dims,
-        q_dims=q_dims,
-        dropout_enc=dropout_enc,
-        dropout_dec=dropout_dec,
-    )
-    model.to(device)
-    model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
-    decoded_data = decode_data(model, emb_matrix, skills_list)
+    # Version with VAE
+    # model_name = 'vae_on_filtered_dataset'
+    # log_dir = "results"
+    # p_dims, q_dims, dropout_enc, dropout_dec = [200, 600, 1304], [1304, 600, 200], [0.5, 0.0], [0.0, 0.0]
+    # model_weights = os.path.join(log_dir, 'weights')
+    # model = MultiVAE(
+    #     p_dims=p_dims,
+    #     q_dims=q_dims,
+    #     dropout_enc=dropout_enc,
+    #     dropout_dec=dropout_dec,
+    # )
+    # model.to(device)
+    # model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
+    # decoded_data = decode_data(model, emb_matrix, skills_list)
+    decoded_data = decode_one_hot_enc(emb_matrix, skills_list)
+    balanced_df.columns = ['skills', 'classes']
+    balanced_df['skills'] = decoded_data
+    balanced_df.to_csv(meta_out_path, sep='\t', index=False)
     train_dataset = make_train_dataset(decoded_data)
     write_dataset(out_filepath, train_dataset)
 

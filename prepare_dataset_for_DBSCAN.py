@@ -45,6 +45,19 @@ def make_flair_emb(x):
         return None
 
 
+def make_vae_embedding(arr, vects_count, embeddings, model):
+    arr = np.array(arr).reshape([1, 1304])
+    X = torch.FloatTensor(arr).to(device)
+    for i in range(vects_count):
+        X_out, mu, logvar = model(X)
+        emb_vector = X_out.cpu().detach().numpy()[0]
+        embeddings.append(emb_vector)
+    emb_matrix = np.array(embeddings)
+    emb_matrix = np.transpose(emb_matrix).tolist()
+    vect = [np.mean(lst) for lst in emb_matrix]
+    return vect, embeddings
+
+
 def make_mean_embedding(curr_skills, *args, vects_count=10):
     """
     Function for finding the mean value of embedding to make predictions
@@ -54,20 +67,12 @@ def make_mean_embedding(curr_skills, *args, vects_count=10):
     count += 1
     print(count)
     all_skills = args[1]
-    model = args[0]
 
     if str(curr_skills) not in embeddings_dict.keys():
-        embeddings = []
+        # embeddings = []
         arr = make_one_hot_embedding(curr_skills, all_skills)
-        arr = np.array(arr).reshape([1, 1304])
-        X = torch.FloatTensor(arr).to(device)
-        for i in range(vects_count):
-            X_out, mu, logvar = model(X)
-            emb_vector = X_out.cpu().detach().numpy()[0]
-            embeddings.append(emb_vector)
-        emb_matrix = np.array(embeddings)
-        emb_matrix = np.transpose(emb_matrix).tolist()
-        vect = [np.mean(lst) for lst in emb_matrix]
+        # vect, embeddings = make_vae_embedding(arr, vects_count, embeddings, model)
+        vect = arr
         embeddings_dict.update({str(curr_skills): vect})
     else:
         vect = embeddings_dict[str(curr_skills)]
