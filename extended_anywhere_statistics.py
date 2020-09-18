@@ -2,6 +2,7 @@ import os
 import json
 
 import pandas as pd
+from bs4 import BeautifulSoup
 
 
 def write_dict(data, filepath):
@@ -15,23 +16,69 @@ def read_json(path):
     return data
 
 
-def frequency_analysis_for_simple_entity(data, column_name):
+def parse_html(content):
+    soup = BeautifulSoup(content, 'lxml')
+    for child in soup.recursiveChildGenerator():
+        if child.name:
+            for tag in soup.find_all(child.name):
+                html_text = tag.text
+                if not html_text:
+                    return 'empty'
+                else:
+                    return 'non empty'
+
+
+def not_null_frequency(data, column_name, neg_word='null', pos_word='non empty'):
     items = []
     for entity in data:
         if column_name in entity.keys():
-            if entity[column_name]:
-                items.append(entity[column_name])
+            item = entity[column_name]
+            if item:
+                if '>' in item:
+                    html_res = parse_html(item)
+                    items.append(html_res)
+                else:
+                    items.append(pos_word)
             else:
-                items.append('Unknown')
+                items.append(neg_word)
         else:
-            items.append('No title')
+            items.append('no title')
+    return make_stats_df(items)
 
+
+def make_stats_df(items):
     stats = []
     unique_items = set(items)
     for item in unique_items:
         stats.append([item, items.count(item)])
     stats = sorted(stats, key=lambda item: item[1], reverse=True)
     return pd.DataFrame(data=stats, columns=['title', 'count'])
+
+
+def frequency_analysis_for_simple_entity(data, column_name, column_name_2=None):
+    items = []
+    content = []
+    for entity in data:
+        if column_name in entity.keys():
+            if column_name_2:
+                content.clear()
+                for item in entity[column_name]:
+                    content.append(item[column_name_2])
+            else:
+                content = entity[column_name]
+            if content:
+                if isinstance(content, list):
+                    items.extend(content)
+                else:
+                    items.append(content)
+            else:
+                if isinstance(content, bool):
+                    items.append(content)
+                else:
+                    items.append('null')
+        else:
+            items.append('no title')
+    return make_stats_df(items)
 
 
 def category_frequency_analysis(data, column_name):
@@ -57,10 +104,35 @@ def category_frequency_analysis(data, column_name):
     df = pd.DataFrame(categories_stats).sort_index()
     categories = set(united_categories_list)
     freqs = [united_categories_list.count(category) for category in categories]
-
-    new_row_ind = max(values_count)+1
+    new_row_ind = max(values_count) + 1
     df.loc[new_row_ind] = freqs
     return df.rename(index={new_row_ind: 'frequency'})
+
+
+def write_results(data, out_path):
+    column_names = ('assignment_duration', 'city', 'country', 'job_type', 'name',
+                    'offer', 'remote_office', 'specialization', 'tags', 'type', 'jobFunctions')
+    columns_for_not_null = ('description', 'is_hot', 'is_hidden', 'about_project')
+    columns_pares = (('job_specialization', '_in_progress'), ('job_specialization', 'title'), ('skills', 'title'))
+
+    with pd.ExcelWriter(out_path, mode='wa', engine='openpyxl') as writer:
+        stats_cat_df = category_frequency_analysis(data, 'international_name')
+        stats_cat_df.to_excel(writer, sheet_name='international_name', engine='openpyxl')
+        for column in column_names:
+            stats = frequency_analysis_for_simple_entity(data, column)
+            stats.to_excel(writer, sheet_name=column, engine='openpyxl')
+        for column in columns_for_not_null:
+            if 'is' in column:
+                pos_word = True
+                neg_word = False
+            else:
+                pos_word = 'non empty'
+                neg_word = 'empty'
+            stats = not_null_frequency(data, column, neg_word=neg_word, pos_word=pos_word)
+            stats.to_excel(writer, sheet_name=column, engine='openpyxl')
+        for pare in columns_pares:
+            stats = frequency_analysis_for_simple_entity(data, pare[0], pare[1])
+            stats.to_excel(writer, sheet_name=f'{pare[0]}.{pare[1]}', engine='openpyxl')
 
 
 def main():
@@ -70,17 +142,7 @@ def main():
     out_path = os.path.join(stats_path, 'statistics.xlsx')
 
     data = read_json(anywhere_path)
-    column_names = ['assignment_duration', 'city', 'country']
-    # f = open(out_path, 'w')
-    # f.close()
-    with pd.ExcelWriter(out_path, mode='wa', engine='openpyxl') as writer:
-        for column in column_names:
-            stats = frequency_analysis_for_simple_entity(data, column)
-            stats.to_excel(writer, sheet_name=column, engine='openpyxl')
-
-    stats_cat_df = category_frequency_analysis(data, 'international_name')
-
-    # print(stats)
+    write_results(data, out_path)
 
 
 if __name__ == "__main__":
