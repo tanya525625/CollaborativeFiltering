@@ -2,7 +2,7 @@ import os
 import json
 import random
 from tqdm import tqdm
-from copy import copy
+from copy import copy, deepcopy
 
 import torch
 import pandas as pd
@@ -29,14 +29,19 @@ def concat_embs(embeddings):
 
 def find_k_nearest_neigh(vect, vectors, k_neigh):
     dists = [np.sqrt(np.sum((curr_vect-vect)*(curr_vect-vect))) for curr_vect in vectors]
-    best_dists = np.sort(dists)[:k_neigh]
-    return [vectors[dists.index(i)] for i in best_dists]
+    best_dists_indexes = [i[0] for i in sorted(enumerate(dists), key=lambda x: x[1])][:k_neigh]
+    return [vectors[ind] for ind in best_dists_indexes]
 
 
 def make_one_hot_mean_emb(vector, nearest_vectors):
     new_vect = vector
     for near_vect in nearest_vectors:
         new_vect = new_vect | near_vect
+    for i, el in enumerate(new_vect):
+        if el == 1:
+            is_add = random.randint(0, 1)
+            if not is_add:
+                new_vect[i] = 0
     return new_vect
 
 
@@ -48,10 +53,10 @@ def oversampler(emb_list, ready_list_length, k_neigh):
     new_embs = []
     while len(new_embs) < diff:
         vect_ind = random.randint(0, list_length - 1)
-        vectors_for_finding = copy(emb_list)
+        vectors_for_finding = deepcopy(emb_list)
         vector = vectors_for_finding.pop(vect_ind)
         nearest_vectors = find_k_nearest_neigh(vector, vectors_for_finding, k_neigh)
-        new_embs.append(make_one_hot_mean_emb(vector, nearest_vectors))
+        new_embs.append(copy(make_one_hot_mean_emb(vector, nearest_vectors)))
         # for VAE version
         # new_embs.append(find_mean_emb(nearest_vectors))
     new_embs += emb_list
@@ -60,11 +65,10 @@ def oversampler(emb_list, ready_list_length, k_neigh):
 
 def undersampler(emb_list, ready_list_length):
     list_length = len(emb_list)
-    diff = list_length - ready_list_length
     new_embs = []
-    while len(new_embs) < diff:
+    while len(new_embs) < ready_list_length:
         vect_ind = random.randint(0, list_length - 1)
-        new_embs.append(emb_list[vect_ind])
+        new_embs.append(copy(emb_list[vect_ind]))
     return new_embs
 
 
@@ -75,19 +79,22 @@ def find_mean_emb(embeddings):
     return mean_vect
 
 
-def balance_dataset(dataset, k_neigh=20):
+def balance_dataset(dataset, k_neigh=10):
+    new_samples_count = 1100
+    els_in_class = new_samples_count // max(dataset['classes'])
+
     dataset = dataset.groupby('classes').apply(concat_embs)
-    mean_len = int(np.mean(embs_length))
+    # ready_list_length = int(np.mean(embs_length))
     balanced_dataset = []
     embeddings_matr = []
     for i, emb_list in tqdm(enumerate(dataset)):
-        if len(emb_list) >= mean_len:
-            new_list = undersampler(emb_list, mean_len)
+        if len(emb_list) >= els_in_class:
+            new_list = undersampler(emb_list, els_in_class)
             for lst in new_list:
-                embeddings_matr.append(np.array(lst))
                 balanced_dataset.append([list(lst), i])
+                embeddings_matr.append(np.array(lst))
         else:
-            new_list = oversampler(emb_list, mean_len, k_neigh)
+            new_list = oversampler(emb_list, els_in_class, k_neigh)
             for lst in new_list:
                 embeddings_matr.append(np.array(lst))
                 balanced_dataset.append([list(lst), i])
@@ -110,6 +117,7 @@ def process_results(matrix, skills_list, key):
             if val > key:
                 row_skills.append(skills_list[j])
         skills_dataset.append(copy(row_skills))
+
     return skills_dataset
 
 
@@ -145,8 +153,8 @@ def main():
     data_dir = "data"
     dataset_data_dir = os.path.join(data_dir, "filtered_anywhere")
     data_model_dir = os.path.join(data_dir, "filtered_dataset_path")
-    out_filepath = os.path.join(data_dir, "balanced_one_hot_anywhere_dataset.json")
-    meta_out_path = os.path.join(data_dir, "meta.tsv")
+    out_filepath = os.path.join(data_dir, "1000_balanced_anywhere_dataset.json")
+    meta_out_path = os.path.join(data_dir, "balanced_meta.tsv")
     dataset = pd.read_parquet(os.path.join(data_dir, "classification_dataset.parquet"))
     balanced_df, emb_matrix = balance_dataset(dataset)
     np.save(os.path.join(data_dir, "anywhere_embeddings.npy"), emb_matrix)

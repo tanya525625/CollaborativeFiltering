@@ -173,22 +173,28 @@ def make_idf_dict(dataset, skills_list):
 
 def main():
     DATA_DIR = Path("data")
-    united_path = os.path.join(DATA_DIR, "balanced_filtered_anywhere")
+    united_path = os.path.join(DATA_DIR, "bigger_balanced_filtered_anywhere")
     vac_out_path = os.path.join(united_path, 'vacancy_data')
     gen_out_path = os.path.join(united_path, 'employee_data')
     os.mkdir(united_path)
     os.mkdir(gen_out_path)
     os.mkdir(vac_out_path)
     new_colnames = ["user_id", "skill"]
-    general_filename = "balanced_one_hot_anywhere_dataset.json"
-    vacancy_dataset_filename = "balanced_one_hot_anywhere_dataset.json"
+    general_filename = "1000_balanced_anywhere_dataset.json"
+    vacancy_dataset_filename = "1000_balanced_anywhere_dataset.json"
+    is_skill2id = True
+    skill2id_path = os.path.join(DATA_DIR, "filtered_anywhere")
 
     data = pd.read_json(DATA_DIR / general_filename, lines=True)
     vac_data = pd.read_json(DATA_DIR / vacancy_dataset_filename, lines=True)
 
     data = prepare_data(data, new_colnames)
     vacancies_data = prepare_data(vac_data, new_colnames)
-    unique_skills, skill2id = find_unique_skills(data, vacancies_data)
+    if is_skill2id:
+        unique_skills = np.load(os.path.join(skill2id_path, "skill2id.npy"), allow_pickle=True).tolist()
+        skill2id = dict((sid, i) for (i, sid) in enumerate(unique_skills))
+    else:
+        unique_skills, skill2id = find_unique_skills(data, vacancies_data)
     np.save(os.path.join(united_path, 'skill2id.npy'), list(skill2id.keys()))
     idf_dict = make_idf_dict(data, list(skill2id.keys()))
     make_processed_data(data, gen_out_path, unique_skills, skill2id, idf_dict)

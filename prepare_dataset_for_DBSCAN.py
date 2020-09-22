@@ -65,7 +65,6 @@ def make_mean_embedding(curr_skills, *args, vects_count=10):
     """
     global count
     count += 1
-    print(count)
     all_skills = args[1]
 
     if str(curr_skills) not in embeddings_dict.keys():

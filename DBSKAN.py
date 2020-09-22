@@ -7,8 +7,8 @@ import numpy as np
 
 
 def find_classes(data):
-    # clustering = KMeans(n_clusters=50, random_state=0).fit(data)
-    clustering = DBSCAN(eps=0.5, min_samples=2).fit(data)
+    clustering = KMeans(n_clusters=60, random_state=0).fit(data)
+    # clustering = DBSCAN(eps=0.5, min_samples=2).fit(data)
     return clustering.labels_
 
 
@@ -36,6 +36,7 @@ def make_meta_tsv(df, dbskan_clusters, output_path):
 
 
 def make_classification_dataset(embeddings, classes, path):
+    print(len(embeddings))
     df = pd.DataFrame(data={'embeddings': embeddings, 'classes': classes})
     df.to_parquet(path, engine='pyarrow')
 
