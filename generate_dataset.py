@@ -75,10 +75,10 @@ if __name__ == "__main__":
         "DevOps": ["Ansible", "Terraform", "Jenkins", "TeamCity", "Linux"]
     }
     data_dir = "data"
-    with open(os.path.join(data_dir, "KMEANS_cluster_dict_for_gen.json")) as json_data:
-        skills_dict = json.load(json_data)
-    vacancies = skills_dict
-    out_path = os.path.join(data_dir, "test_data")
+    # with open(os.path.join(data_dir, "KMEANS_cluster_dict_for_gen.json")) as json_data:
+    #     skills_dict = json.load(json_data)
+    # vacancies = skills_dict
+    out_path = os.path.join(data_dir)
     users_count = 20000
     vacancies_count = 10000
     skills_min_count = 8
@@ -92,12 +92,12 @@ if __name__ == "__main__":
     common_vacancies_skills = ["agile", "git", "scrum", "sql",
                                "mysql", "windows", "docker", "jira", "gitlab"]
 
-    common_skills, common_vacancies_skills = [], []
+    # common_skills, common_vacancies_skills = [], []
 
     print("Added items")
     dataset = generate_dataset(users_count, skills_min_count, skills_max_count, skills_dict, common_skills)
     vacancies_dataset = generate_dataset(vacancies_count, skills_vacancies_min, skills_vacancies_max,
                                          vacancies, common_vacancies_skills)
-    write_dataset(os.path.join(data_dir, "kmeans_data.json"), dataset)
-    write_dataset(os.path.join(data_dir, "kmeans_vacancies.json"), vacancies_dataset)
+    write_dataset(os.path.join(data_dir, "generated_employees.json"), dataset)
+    write_dataset(os.path.join(data_dir, "generated_vacancies.json"), vacancies_dataset)
 

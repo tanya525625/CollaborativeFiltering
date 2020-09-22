@@ -143,14 +143,15 @@ def decode_one_hot_enc(array, all_skills):
 
 def main():
     data_dir = "data"
+    dataset_data_dir = os.path.join(data_dir, "filtered_anywhere")
     data_model_dir = os.path.join(data_dir, "filtered_dataset_path")
-    out_filepath = os.path.join(data_dir, "balanced_one_hot_dataset.json")
-    meta_out_path = os.path.join(data_dir, "balanced_meta.tsv")
+    out_filepath = os.path.join(data_dir, "balanced_one_hot_anywhere_dataset.json")
+    meta_out_path = os.path.join(data_dir, "meta.tsv")
     dataset = pd.read_parquet(os.path.join(data_dir, "classification_dataset.parquet"))
     balanced_df, emb_matrix = balance_dataset(dataset)
-    np.save(os.path.join(data_dir, "balanced_embeddings.npy"), emb_matrix)
+    np.save(os.path.join(data_dir, "anywhere_embeddings.npy"), emb_matrix)
     # emb_matrix = np.load(os.path.join(data_dir, "balanced_embeddings.npy"), allow_pickle=True)
-    skills_list = np.load(os.path.join(data_dir, "skill2id.npy"), allow_pickle=True).tolist()
+    skills_list = np.load(os.path.join(dataset_data_dir, "skill2id.npy"), allow_pickle=True).tolist()
 
     # Version with VAE
     # model_name = 'vae_on_filtered_dataset'

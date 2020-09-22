@@ -94,14 +94,15 @@ if __name__ == "__main__":
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    model_name = 'vae_on_filtered_dataset'
+    model_name = 'vae_on_filtered_anywhere'
     log_dir = "results"
     model_weights = os.path.join(log_dir, 'weights')
     data_dir = "data"
-    dataset_path = os.path.join(data_dir, "filtered_dataset.json")
-    output_path = os.path.join(data_dir, "DBSKAN_embeddings.npy")
+    dataset_data_dir = os.path.join(data_dir, "filtered_anywhere")
+    dataset_path = os.path.join(data_dir, "fixed_anywhere.json")
+    output_path = os.path.join(data_dir, "anywhere_embeddings.npy")
 
-    p_dims, q_dims, dropout_enc, dropout_dec = [200, 600, 1304], [1304, 600, 200], [0.5, 0.0], [0.0, 0.0]
+    p_dims, q_dims, dropout_enc, dropout_dec = [200, 600, 676], [676, 600, 200], [0.5, 0.0], [0.0, 0.0]
     model = MultiVAE(
         p_dims=p_dims,
         q_dims=q_dims,
@@ -111,7 +112,7 @@ if __name__ == "__main__":
     model.to(device)
     model.load_state_dict(torch.load(os.path.join(model_weights, model_name + ".pt")))
 
-    all_skills = np.load(os.path.join(data_dir, 'skill2id.npy'),  allow_pickle=True).tolist()
+    all_skills = np.load(os.path.join(dataset_data_dir, 'skill2id.npy'),  allow_pickle=True).tolist()
     dataset = pd.read_json(dataset_path, lines=True)
     emb_matr = make_embedding(model, dataset)
 

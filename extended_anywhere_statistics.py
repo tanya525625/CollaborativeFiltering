@@ -102,8 +102,7 @@ def category_frequency_analysis(data, column_name):
         categories_stats[cat_name][cat_values] += 1
 
     df = pd.DataFrame(categories_stats).sort_index()
-    categories = set(united_categories_list)
-    freqs = [united_categories_list.count(category) for category in categories]
+    freqs = [united_categories_list.count(category) for category in df.columns]
     new_row_ind = max(values_count) + 1
     df.loc[new_row_ind] = freqs
     return df.rename(index={new_row_ind: 'frequency'})
