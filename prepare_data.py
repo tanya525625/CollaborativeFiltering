@@ -173,16 +173,16 @@ def make_idf_dict(dataset, skills_list):
 
 def main():
     DATA_DIR = Path("data")
-    united_path = os.path.join(DATA_DIR, "bigger_balanced_filtered_anywhere")
+    united_path = os.path.join(DATA_DIR, "balanced_one_hot_idf_dataset")
     vac_out_path = os.path.join(united_path, 'vacancy_data')
     gen_out_path = os.path.join(united_path, 'employee_data')
     os.mkdir(united_path)
     os.mkdir(gen_out_path)
     os.mkdir(vac_out_path)
     new_colnames = ["user_id", "skill"]
-    general_filename = "1000_balanced_anywhere_dataset.json"
-    vacancy_dataset_filename = "1000_balanced_anywhere_dataset.json"
-    is_skill2id = True
+    general_filename = "balanced_one_hot_dataset.json"
+    vacancy_dataset_filename = "filtered_dataset.json"
+    is_skill2id = False
     skill2id_path = os.path.join(DATA_DIR, "filtered_anywhere")
 
     data = pd.read_json(DATA_DIR / general_filename, lines=True)
